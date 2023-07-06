@@ -17,6 +17,8 @@ def count_X(string):
         sub = 3
     elif (range > 3 and range <= 4):
         sub = 4
+    else:
+        print("Word is too long. Please enter a word with less than 21 letters.")
     count = letters - sub
     return count
     
