@@ -1,56 +1,47 @@
+import re
 import sys
 
-"""
-This function counts the number of X's to be used in the redacted word. The pattern follows that if the word has 5 letters or less, then the redacted word will have 1 X. If the word has 6-10 letters, then the redacted word will have 2 X's. If the word has 11-15 letters, then the redacted word will have 3 X's. If the word has 16-20 letters, then the redacted word will have 4 X's. If the word has 21 or more letters, then the redacted word will have 5 X's.
-"""
 def count_X(string):
     letters = len(string)
-    range = letters/5
-    sub = 0
-    if (range <= 1):
+    if letters <= 5:
         sub = 1
-    elif (range > 1 and range <= 2): 
+    elif letters <= 10:
         sub = 2
-    elif (range > 2 and range <= 3):
+    elif letters <= 15:
         sub = 3
-    elif (range > 3 and range <= 4):
+    elif letters <= 20:
         sub = 4
     else:
-        print("Word is too long. Please enter a word with less than 21 letters.")
+        raise ValueError("Word is too long. Please enter a word with less than 21 letters.")
     count = letters - sub
     return count
-    
 
-#python TextRedacter.py <input_file> <output_file> <word_to_redact> <redacted_word>
-# Check for correct number of arguments
-def Redact(input_file, output_file, word_to_redact):
-    file = open(input_file, "r")
-    output = open(output_file, "w")
-    if (word_to_redact == 'pro_nouns'): #redact all pronouns
-        for line in file:
-            for word in line.split():  #go word by word
-                if word in pro_nouns:
-                    line = line.replace(word, "X" * count_X(word))
-            output.write(line)
-    else: #redact a specific word
-        redacted_word = "X" * count_X(word_to_redact)
-        for line in file:
-            if (word_to_redact in line):
-                output.write(line.replace(word_to_redact, redacted_word))
-            else:
-                output.write(line)
-    file.close()
-    output.close()
+def redact_text(input_file, output_file, word_to_redact):
+    with open(input_file, "r") as file:
+        text = file.read()
 
-pro_nouns = ['she', 'She', 'Her','her', 'Hers', 'hers', 'He', 'he', 'Him', 'him', 'His', 'his'] #list of pronouns
-if ((len(sys.argv) == 2) and (sys.argv[1] == '-help')):
-    print("\n-----------------------------------------------------------------------------------------------------------------------------------------------\n")
-    print("Sample use: python TextRedacter.py <input_file> <output_file> <word_to_redact>\n\nReplace <input_file> with the name of the file you want to redact.\n\nReplace <output_file> with the name of the file you want to write the redacted text to.\n\nReplace <word_to_redact> with the word you want to redact.\n\nNote: You can pass pro_nouns as the <word_to_redact> to redact all pronouns.\nExample: python TextRedacter.py input.txt output.txt pro_nouns")
-    print("\n-----------------------------------------------------------------------------------------------------------------------------------------------\n")
-elif (len(sys.argv) != 4):
-    print("\n-----------------------------------------------------------------------------------------------------------------------------------------------\n")
-    print("Incorrect number of arguments. Please enter 4 arguments.\n\nSample use: python TextRedacter.py <input_file> <output_file> <word_to_redact>\n\nHelp: python TextRedacter.py -help")
-    print("\n-----------------------------------------------------------------------------------------------------------------------------------------------\n")
-else:
-    Redact(sys.argv[1], sys.argv[2], sys.argv[3])
+    if word_to_redact == 'pro_nouns':  # redact all pronouns
+        pronouns = ['she', 'She', 'Her', 'her', 'Hers', 'hers', 'He', 'he', 'Him', 'him', 'His', 'his']
+        for pronoun in pronouns:
+            word_regex = r'\b{}\b'.format(re.escape(pronoun))
+            text = re.sub(word_regex, "X" * count_X(pronoun), text)
+    else:  # redact a specific word
+        word_regex = r'\b{}\b'.format(re.escape(word_to_redact))
+        text = re.sub(word_regex, "X" * count_X(word_to_redact), text)
 
+    with open(output_file, "w") as file:
+        file.write(text)
+
+    print("Text redaction complete.")
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == '-help':
+        print("\n-----------------------------------------------------------------------------------------------------------------------------------------------\n")
+        print("Sample use: python3 TextRedacter.py <input_file> <output_file> <word_to_redact>\n\nReplace <input_file> with the name of the file you want to redact.\n\nReplace <output_file> with the name of the file you want to write the redacted text to.\n\nReplace <word_to_redact> with the word you want to redact.\n\nNote: You can pass pro_nouns as the <word_to_redact> to redact all pronouns.\nExample: python TextRedacter.py input.txt output.txt pro_nouns")
+        print("\n-----------------------------------------------------------------------------------------------------------------------------------------------\n")
+    elif len(sys.argv) != 4:
+        print("\n-----------------------------------------------------------------------------------------------------------------------------------------------\n")
+        print("Incorrect number of arguments. Please enter 4 arguments.\n\nSample use: python3 TextRedacter.py <input_file> <output_file> <word_to_redact>\n\nHelp: python TextRedacter.py -help")
+        print("\n-----------------------------------------------------------------------------------------------------------------------------------------------\n")
+    else:
+        redact_text(sys.argv[1], sys.argv[2], sys.argv[3])
